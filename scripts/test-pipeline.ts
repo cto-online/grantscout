@@ -7,6 +7,7 @@ import { extractGrantAtlasAwardees } from '../src/pipeline/extractors/grantatlas
 import { normalizeOrg, normalizeSignal } from '../src/pipeline/normalizer.js';
 import { computeAccountScore } from '../src/scoring/accountScore.js';
 import { rankProspects, syncProspectsToHubSpot } from '../src/orchestrator/hubspot.js';
+import { computeICPCentroid, computeFitScore } from '../src/ai/gemini.js';
 
 // Sample ANBI data
 const anbiData = `RSIN_Nummer	Naam	Doelstelling	Status
@@ -73,16 +74,22 @@ async function main() {
   console.log('3️⃣  ACCOUNT SCORING');
   console.log('─'.repeat(60));
 
-  const prospects = normalizedOrgs.map(org => {
+  // Compute ICP centroid from GrantMaster customer missions (demo seeds)
+  const icpCentroid = await computeICPCentroid([
+    'Education and workforce development',
+    'Healthcare and social services',
+    'Community development and poverty alleviation',
+  ]);
+
+  const prospects = await Promise.all(normalizedOrgs.map(async org => {
     const relatedSignals = normalizedSignals.filter(s => s.orgId === org.canonicalId);
 
-    // Fit: if has grant award signal, boost fit
-    const hasGrantAward = relatedSignals.some(s => s.type === 'grant_awarded');
-    const fit = hasGrantAward ? 0.85 : 0.5;
+    // Compute real Fit score from mission embedding similarity
+    const fit = org.mission ? await computeFitScore(org.mission, icpCentroid) : 0.3;
 
     const score = computeAccountScore(org, relatedSignals, fit, 0.8);
     return { org, score };
-  });
+  }));
 
   // Show top 3
   const ranked = rankProspects(prospects, 3);
