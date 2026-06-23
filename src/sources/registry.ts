@@ -12,7 +12,10 @@ export const SOURCES: Source[] = [
     schedule: '0 3 * * 1',          // weekly Monday 03:00
     enabled: true,
     license: 'open data',
-    fetchConfig: { format: 'csv' },
+    fetchConfig: {
+      url: 'https://www.belastingdienst.nl/download/anbi.tsv',
+      format: 'tsv',
+    },
   },
   {
     id: 'grantatlas-awardees',
