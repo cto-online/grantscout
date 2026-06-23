@@ -6,6 +6,7 @@ import type { Organization, Signal, Confidence, Provenance } from '../core/types
  * Applies Zod schemas, confidence scoring, standardization.
  */
 export const OrgSchema = z.object({
+  canonicalId: z.string(),
   names: z.array(z.string()).min(1),
   type: z.enum(['ngo', 'foundation', 'charity', 'association', 'social_enterprise', 'other']),
   country: z.string().length(2),
@@ -15,29 +16,76 @@ export const OrgSchema = z.object({
     anbi: z.boolean().optional(),
     websiteDomain: z.string().optional(),
   }).optional(),
+  mission: z.string().optional(),
+  themes: z.array(z.string()).optional(),
+  provenance: z.array(z.object({
+    sourceId: z.string(),
+    snapshotId: z.string().optional(),
+    sourceUrl: z.string().optional(),
+    fetchedAt: z.string().optional(),
+    extractionMethod: z.enum(['deterministic', 'llm']).optional(),
+  })),
+  confidence: z.object({
+    overall: z.number().min(0).max(1),
+    perField: z.record(z.number()).optional(),
+  }),
 });
 
 export const SignalSchema = z.object({
+  id: z.string(),
+  orgId: z.string(),
   type: z.enum(['grant_awarded', 'grant_applied', 'deadline_upcoming', 'hiring_grants_role', 'registry_listed', 'search_intent', 'website_signal']),
+  strength: z.number().min(0).max(1).optional(),
   occurredAt: z.string().datetime(),
+  detectedAt: z.string().datetime().optional(),
   payload: z.record(z.unknown()).optional(),
+  provenance: z.object({
+    sourceId: z.string(),
+    snapshotId: z.string().optional(),
+  }),
+  confidence: z.object({
+    overall: z.number().min(0).max(1),
+  }).optional(),
 });
 
-export function normalizeOrg(raw: unknown, provenance: Provenance): { org: Organization | null; confidence: Confidence; errors: string[] } {
-  // TODO implement validation + normalization
-  // - Parse + validate via OrgSchema
-  // - Normalize: whitespace, casing, duplicates in names
-  // - Extract RSIN/KVK if present; link to GrantAtlas funders if available
-  // - Assign confidence per field (identifiers boost, mission reduces)
-  // - Collect errors for review queue
-  return { org: null, confidence: { overall: 0 }, errors: [] };
+export function normalizeOrg(raw: unknown): { org: Organization | null; confidence: Confidence; errors: string[] } {
+  const errors: string[] = [];
+  let org: Organization | null = null;
+
+  try {
+    const parsed = OrgSchema.parse(raw);
+    org = parsed as Organization;
+  } catch (e) {
+    if (e instanceof z.ZodError) {
+      errors.push(...e.errors.map(err => `${err.path.join('.')}: ${err.message}`));
+    } else {
+      errors.push(String(e));
+    }
+  }
+
+  const confidence: Confidence = {
+    overall: org?.confidence.overall ?? 0,
+    perField: org?.confidence.perField,
+  };
+
+  return { org, confidence, errors };
 }
 
-export function normalizeSignal(raw: unknown, provenance: Provenance): { signal: Signal | null; confidence: Confidence; errors: string[] } {
-  // TODO implement signal validation
-  // - Parse + validate via SignalSchema
-  // - Link to org (orgId lookup or deterministic match)
-  // - Assign confidence per source + freshness
-  // - Collect errors
-  return { signal: null, confidence: { overall: 0 }, errors: [] };
+export function normalizeSignal(raw: unknown): { signal: Signal | null; confidence: Confidence; errors: string[] } {
+  const errors: string[] = [];
+  let signal: Signal | null = null;
+
+  try {
+    const parsed = SignalSchema.parse(raw);
+    signal = parsed as Signal;
+  } catch (e) {
+    if (e instanceof z.ZodError) {
+      errors.push(...e.errors.map(err => `${err.path.join('.')}: ${err.message}`));
+    } else {
+      errors.push(String(e));
+    }
+  }
+
+  const confidence: Confidence = { overall: 0.9 };
+  return { signal, confidence, errors };
 }

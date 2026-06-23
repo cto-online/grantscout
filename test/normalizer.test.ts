@@ -5,17 +5,23 @@ describe('normalizer', () => {
   describe('OrgSchema validation', () => {
     it('accepts valid org data', () => {
       const valid = {
+        canonicalId: 'test-id',
         names: ['Test NGO'],
         type: 'ngo',
         country: 'NL',
+        provenance: [{ sourceId: 'test' }],
+        confidence: { overall: 0.9 },
       };
       expect(() => OrgSchema.parse(valid)).not.toThrow();
     });
 
     it('rejects missing country', () => {
       const invalid = {
+        canonicalId: 'test-id',
         names: ['Test NGO'],
         type: 'ngo',
+        provenance: [{ sourceId: 'test' }],
+        confidence: { overall: 0.9 },
       };
       expect(() => OrgSchema.parse(invalid)).toThrow();
     });
