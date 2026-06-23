@@ -1,47 +1,57 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Only allow service account writes (Cloud Run jobs)
-    // Only allow authorized team read access to organizations
+    // Service account (Cloud Run ingest) writes have no auth uid.
+    function isService() {
+      return request.auth == null || request.auth.uid == null;
+    }
+    // Verified GrantMaster team member (console users).
+    // NB: Firestore rules have no string.endsWith(); use matches() with a
+    // RE2 regex anchored to the domain.
+    function isTeam() {
+      return request.auth != null &&
+             request.auth.token.email_verified == true &&
+             request.auth.token.email.matches('.*@grantmaster[.]nl$');
+    }
 
     match /organizations/{document=**} {
-      // Service: Write (ingest)
-      allow write: if request.auth.uid == null &&
-                      request.headers['authorization'] != null;
-      // Team: Read (view prospects)
-      allow read: if request.auth.token.email_verified &&
-                     request.auth.token.email.endsWith('@grantmaster.nl');
+      allow write: if isService();
+      allow read: if isTeam();
     }
 
     match /signals/{document=**} {
-      allow write: if request.auth.uid == null;
-      allow read: if request.auth.token.email_verified &&
-                     request.auth.token.email.endsWith('@grantmaster.nl');
+      allow write: if isService();
+      allow read: if isTeam();
     }
 
     match /accountScores/{document=**} {
-      allow write: if request.auth.uid == null;
-      allow read: if request.auth.token.email_verified &&
-                     request.auth.token.email.endsWith('@grantmaster.nl');
+      allow write: if isService();
+      allow read: if isTeam();
     }
 
     match /sources/{document=**} {
-      allow read: if request.auth.token.email_verified;
-      allow write: if false; // Admin only, set via GCP console
+      allow read: if isTeam();
+      // Console can toggle/edit source config; ingest also writes via service.
+      allow write: if isService() || isTeam();
     }
 
     match /syncLogs/{document=**} {
-      allow write: if request.auth.uid == null;
-      allow read: if request.auth.token.email_verified;
+      allow write: if isService() || isTeam(); // team can enqueue a manual run
+      allow read: if isTeam();
     }
 
+    // Console-owned: human review decisions.
     match /reviewQueue/{document=**} {
-      allow read, write: if request.auth.token.email_verified &&
-                            request.auth.token.email.endsWith('@grantmaster.nl');
+      allow read, write: if isTeam();
+    }
+
+    // Console-owned: console configuration (doc id: "console").
+    match /settings/{document=**} {
+      allow read, write: if isTeam();
     }
 
     match /rawSnapshots/{document=**} {
-      allow write: if request.auth.uid == null;
+      allow write: if isService();
       allow read: if false; // Immutable, accessed via GCS
     }
   }

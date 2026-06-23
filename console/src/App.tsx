@@ -1,15 +1,23 @@
+import { lazy, Suspense } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/auth/AuthProvider'
 import { LoginPage } from '@/auth/LoginPage'
 import { AppShell } from '@/app/AppShell'
-import { Overview } from '@/screens/Overview'
-import { PipelineRuns } from '@/screens/PipelineRuns'
-import { Sources } from '@/screens/Sources'
-import { ExtractedGrants } from '@/screens/ExtractedGrants'
-import { ReviewQueue } from '@/screens/ReviewQueue'
-import { ScoringResults } from '@/screens/ScoringResults'
-import { Settings } from '@/screens/Settings'
+import { NotFound } from '@/app/NotFound'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { ToastProvider } from '@/components/feedback/Toast'
+
+// Route-level code splitting — each screen is its own chunk.
+const Overview = lazy(() => import('@/screens/Overview').then((m) => ({ default: m.Overview })))
+const PipelineRuns = lazy(() => import('@/screens/PipelineRuns').then((m) => ({ default: m.PipelineRuns })))
+const RunDetail = lazy(() => import('@/screens/RunDetail').then((m) => ({ default: m.RunDetail })))
+const Sources = lazy(() => import('@/screens/Sources').then((m) => ({ default: m.Sources })))
+const ExtractedGrants = lazy(() => import('@/screens/ExtractedGrants').then((m) => ({ default: m.ExtractedGrants })))
+const GrantDetail = lazy(() => import('@/screens/GrantDetail').then((m) => ({ default: m.GrantDetail })))
+const ReviewQueue = lazy(() => import('@/screens/ReviewQueue').then((m) => ({ default: m.ReviewQueue })))
+const ScoringResults = lazy(() => import('@/screens/ScoringResults').then((m) => ({ default: m.ScoringResults })))
+const Settings = lazy(() => import('@/screens/Settings').then((m) => ({ default: m.Settings })))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -35,28 +43,39 @@ export function AuthGate() {
   if (!user) return <LoginPage />
 
   return (
-    <Routes>
-      <Route element={<AppShell />}>
-        <Route index element={<Overview />} />
-        <Route path="runs" element={<PipelineRuns />} />
-        <Route path="sources" element={<Sources />} />
-        <Route path="grants" element={<ExtractedGrants />} />
-        <Route path="review" element={<ReviewQueue />} />
-        <Route path="scoring" element={<ScoringResults />} />
-        <Route path="settings" element={<Settings />} />
-      </Route>
-    </Routes>
+    <Suspense fallback={<Splash />}>
+      <Routes>
+        <Route element={<AppShell />}>
+          <Route index element={<Overview />} />
+          <Route path="runs" element={<PipelineRuns />} />
+          <Route path="runs/:id" element={<RunDetail />} />
+          <Route path="sources" element={<Sources />} />
+          <Route path="grants" element={<ExtractedGrants />} />
+          <Route path="grants/:id" element={<GrantDetail />} />
+          <Route path="review" element={<ReviewQueue />} />
+          <Route path="scoring" element={<ScoringResults />} />
+          <Route path="settings" element={<Settings />} />
+          <Route path="*" element={<NotFound />} />
+        </Route>
+      </Routes>
+    </Suspense>
   )
 }
 
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <BrowserRouter>
-          <AuthGate />
-        </BrowserRouter>
-      </AuthProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ToastProvider>
+          <AuthProvider>
+            <BrowserRouter
+              future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+            >
+              <AuthGate />
+            </BrowserRouter>
+          </AuthProvider>
+        </ToastProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   )
 }

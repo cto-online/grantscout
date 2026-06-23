@@ -6,15 +6,11 @@ import {
   ReactNode,
 } from 'react'
 import {
-  initializeApp,
-  getApps,
-} from 'firebase/app'
-import {
-  getAuth,
   onAuthStateChanged,
   signOut,
   User as FirebaseUser,
 } from 'firebase/auth'
+import { auth } from '@/lib/firebase'
 import type { User } from '@/types'
 
 interface AuthContextType {
@@ -30,17 +26,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const firebaseConfig = {
-      apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-      authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-    }
-
-    if (!getApps().length) {
-      initializeApp(firebaseConfig)
-    }
-
-    const auth = getAuth()
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser: FirebaseUser | null) => {
       if (firebaseUser) {
         setUser({
@@ -59,7 +44,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const logout = async () => {
-    const auth = getAuth()
     await signOut(auth)
     setUser(null)
   }

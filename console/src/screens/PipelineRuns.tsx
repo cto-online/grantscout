@@ -1,119 +1,121 @@
-import { format } from 'date-fns'
-import { Play, CheckCircle, AlertCircle, Clock } from 'lucide-react'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { CheckCircle, XCircle, Loader2, Clock, FlaskConical } from 'lucide-react'
+import { useLiveRuns } from '@/data/useRuns'
+import { SkeletonRows } from '@/components/states/Skeleton'
+import { ErrorState } from '@/components/states/ErrorState'
+import { EmptyState } from '@/components/states/EmptyState'
+import { Badge, runStatusTone } from '@/components/Badge'
+import { fmtRelative, fmtNumber, titleCase } from '@/lib/format'
+import type { RunStatus } from '@/data/types'
+
+const FILTERS: { label: string; value: RunStatus | 'all' }[] = [
+  { label: 'All', value: 'all' },
+  { label: 'Success', value: 'success' },
+  { label: 'Running', value: 'running' },
+  { label: 'Error', value: 'error' },
+  { label: 'Dry-run', value: 'dry-run' },
+]
+
+function StatusIcon({ status }: { status: RunStatus }) {
+  switch (status) {
+    case 'success':
+      return <CheckCircle className="h-4 w-4 text-success" />
+    case 'error':
+      return <XCircle className="h-4 w-4 text-danger" />
+    case 'running':
+      return <Loader2 className="h-4 w-4 animate-spin text-accent" />
+    case 'queued':
+      return <Clock className="h-4 w-4 text-accent" />
+    default:
+      return <FlaskConical className="h-4 w-4 text-warning" />
+  }
+}
 
 export function PipelineRuns() {
-  const runs = [
-    {
-      id: '1',
-      source: 'ANBI Registry (Netherlands)',
-      status: 'completed',
-      startedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      completedAt: new Date(Date.now() - 1.5 * 60 * 60 * 1000),
-      recordsProcessed: 2341,
-      recordsImported: 2341,
-    },
-    {
-      id: '2',
-      source: 'GrantAtlas Awardees',
-      status: 'completed',
-      startedAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
-      completedAt: new Date(Date.now() - 23.5 * 60 * 60 * 1000),
-      recordsProcessed: 512,
-      recordsImported: 501,
-    },
-    {
-      id: '3',
-      source: 'EU Grants',
-      status: 'running',
-      startedAt: new Date(Date.now() - 30 * 60 * 1000),
-      recordsProcessed: 1234,
-      recordsImported: 0,
-    },
-  ]
+  const { data, isLoading, isError, error, retry } = useLiveRuns()
+  const [filter, setFilter] = useState<RunStatus | 'all'>('all')
+  const navigate = useNavigate()
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <CheckCircle className="h-5 w-5 text-success" />
-      case 'running':
-        return <Clock className="h-5 w-5 text-info animate-spin" />
-      case 'failed':
-        return <AlertCircle className="h-5 w-5 text-error" />
-      default:
-        return <Play className="h-5 w-5 text-muted" />
-    }
-  }
+  const runs = (data ?? []).filter((r) => filter === 'all' || r.status === filter)
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-fg">
-          Pipeline Runs
-        </h1>
-        <p className="mt-2 text-muted">
-          Monitor all data extraction and processing runs
-        </p>
+    <div className="p-6 md:p-8">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-fg">Pipeline Runs</h1>
+        <p className="mt-2 text-muted">Monitor all extraction runs across sources</p>
       </div>
 
-      <div className="rounded-lg border border-hair bg-panel overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-hair bg-card">
-              <th className="px-6 py-3 text-left font-semibold text-fg">
-                Source
-              </th>
-              <th className="px-6 py-3 text-left font-semibold text-fg">
-                Status
-              </th>
-              <th className="px-6 py-3 text-left font-semibold text-fg">
-                Started
-              </th>
-              <th className="px-6 py-3 text-left font-semibold text-fg">
-                Records
-              </th>
-              <th className="px-6 py-3 text-left font-semibold text-fg">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {runs.map((run) => (
-              <tr
-                key={run.id}
-                className="border-b border-hair hover:bg-card transition-colors last:border-0"
-              >
-                <td className="px-6 py-4 text-fg font-medium">
-                  {run.source}
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2">
-                    {getStatusIcon(run.status)}
-                    <span className="capitalize text-muted">
-                      {run.status}
-                    </span>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-muted">
-                  {format(run.startedAt, 'MMM d, HH:mm')}
-                </td>
-                <td className="px-6 py-4">
-                  <div className="text-fg font-medium">
-                    {run.recordsImported} / {run.recordsProcessed}
-                  </div>
-                  <div className="text-xs text-faint">
-                    {Math.round((run.recordsImported / run.recordsProcessed) * 100)}%
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <button className="text-accent hover:text-accent-hover font-medium text-sm">
-                    View Details
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="mb-4 flex flex-wrap gap-2">
+        {FILTERS.map((f) => (
+          <button
+            key={f.value}
+            onClick={() => setFilter(f.value)}
+            className={`rounded-full px-3 py-1 text-sm transition-colors ${
+              filter === f.value
+                ? 'bg-accent text-fg'
+                : 'bg-card text-muted hover:bg-hair'
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
       </div>
+
+      {isLoading && <SkeletonRows />}
+      {isError && <ErrorState error={error} onRetry={retry} />}
+
+      {data &&
+        (runs.length === 0 ? (
+          <EmptyState
+            title="No runs match this filter"
+            message="Try a different status filter."
+          />
+        ) : (
+          <div className="overflow-x-auto rounded-lg border border-hair bg-panel">
+            <table className="w-full text-sm">
+              <thead className="border-b border-hair text-left text-xs uppercase tracking-wide text-faint">
+                <tr>
+                  <th className="px-4 py-3 font-medium">Source</th>
+                  <th className="px-4 py-3 font-medium">Status</th>
+                  <th className="hidden px-4 py-3 font-medium md:table-cell">Orgs</th>
+                  <th className="hidden px-4 py-3 font-medium md:table-cell">Signals</th>
+                  <th className="px-4 py-3 font-medium">When</th>
+                  <th className="px-4 py-3" />
+                </tr>
+              </thead>
+              <tbody>
+                {runs.map((run) => (
+                  <tr
+                    key={run.id}
+                    onClick={() => navigate(`/runs/${run.id}`)}
+                    className="cursor-pointer border-b border-hair last:border-0 hover:bg-card/50"
+                  >
+                    <td className="px-4 py-3 font-medium text-fg">
+                      {titleCase(run.sourceId ?? run.service ?? 'run')}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="flex items-center gap-2">
+                        <StatusIcon status={run.status} />
+                        <Badge tone={runStatusTone(run.status)}>{run.status}</Badge>
+                      </span>
+                    </td>
+                    <td className="hidden px-4 py-3 text-muted md:table-cell">
+                      {fmtNumber(run.orgsIngested)}
+                    </td>
+                    <td className="hidden px-4 py-3 text-muted md:table-cell">
+                      {fmtNumber(run.signalsIngested)}
+                    </td>
+                    <td className="px-4 py-3 text-muted">{fmtRelative(run.timestamp)}</td>
+                    <td className="px-4 py-3 text-right">
+                      <span className="text-sm font-medium text-accent">View →</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))}
     </div>
   )
 }

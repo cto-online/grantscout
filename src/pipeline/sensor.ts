@@ -3,6 +3,7 @@ import { fetchHttp, storeSnapshot } from './providers/http.js';
 import { extractAnbi } from './extractors/anbi.js';
 import { normalizeOrg, normalizeSignal } from './normalizer.js';
 import { resolveOrganizations, deduplicateSignals, writeOrganizationsAndSignals } from './resolver.js';
+import { scoreAndPersist } from '../scoring/persist.js';
 import { collections } from '../core/firestore.js';
 
 /**
@@ -104,12 +105,26 @@ export async function runSensor(source: Source): Promise<{ orgs: number; signals
 
     console.log(`[sensor] Wrote ${writeResult.orgsWritten} orgs, ${writeResult.signalsWritten} signals`);
 
+    // 6b. Score + enqueue review (secondary — never fail ingest on a scoring error)
+    let scoring = { scored: 0, queuedForReview: 0 };
+    try {
+      scoring = await scoreAndPersist(
+        Array.from(resolvedOrgs.values()),
+        deduplicatedSignals,
+      );
+      console.log(`[sensor] Scored ${scoring.scored} orgs, queued ${scoring.queuedForReview} for review`);
+    } catch (e) {
+      console.warn('[sensor] Scoring step failed (non-fatal):', e);
+    }
+
     // 7. Store sync log
     await collections.syncLogs.add({
       sourceId: source.id,
       timestamp: new Date().toISOString(),
       orgsIngested: writeResult.orgsWritten,
       signalsIngested: writeResult.signalsWritten,
+      scored: scoring.scored,
+      queuedForReview: scoring.queuedForReview,
       snapshotId,
       status: 'success',
     });
