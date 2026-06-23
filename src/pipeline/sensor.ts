@@ -46,11 +46,27 @@ export async function runSensor(source: Source): Promise<{ orgs: number; signals
         const result = extractAnbi(rawData, snapshotId);
         orgsRaw = result.orgs;
         signalsRaw = result.signals;
+      } else if (source.id === 'grantatlas-awardees') {
+        const { extractGrantAtlasAwardees } = await import('./extractors/grantatlas.js');
+        const result = extractGrantAtlasAwardees(rawData, snapshotId);
+        orgsRaw = result.orgs;
+        signalsRaw = result.signals;
       } else {
         throw new Error(`${source.id}: deterministic extraction not implemented`);
       }
+    } else if (source.extractionMethod === 'llm') {
+      if (source.id === 'hiring-nl') {
+        // For hiring, rawData should be JSON array of job postings
+        const { extractHiringSignals } = await import('./extractors/hiring.js');
+        const jobPostings = JSON.parse(rawData.toString('utf-8'));
+        const result = await extractHiringSignals(jobPostings, snapshotId);
+        orgsRaw = result.orgs;
+        signalsRaw = result.signals;
+      } else {
+        throw new Error(`${source.id}: LLM extraction not yet implemented`);
+      }
     } else {
-      throw new Error(`${source.id}: LLM extraction not yet implemented`);
+      throw new Error(`${source.id}: unknown extraction method ${source.extractionMethod}`);
     }
 
     console.log(`[sensor] Extracted ${orgsRaw.length} orgs, ${signalsRaw.length} signals`);
