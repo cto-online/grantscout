@@ -47,31 +47,31 @@ export function PipelineRuns() {
   return (
     <div className="p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-text-primary">
+        <h1 className="text-3xl font-bold text-fg">
           Pipeline Runs
         </h1>
-        <p className="mt-2 text-text-secondary">
+        <p className="mt-2 text-muted">
           Monitor all data extraction and processing runs
         </p>
       </div>
 
-      <div className="rounded-lg border border-hair bg-surface-primary overflow-hidden">
+      <div className="rounded-lg border border-hair bg-panel overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-hair bg-surface-secondary">
-              <th className="px-6 py-3 text-left font-semibold text-text-primary">
+            <tr className="border-b border-hair bg-card">
+              <th className="px-6 py-3 text-left font-semibold text-fg">
                 Source
               </th>
-              <th className="px-6 py-3 text-left font-semibold text-text-primary">
+              <th className="px-6 py-3 text-left font-semibold text-fg">
                 Status
               </th>
-              <th className="px-6 py-3 text-left font-semibold text-text-primary">
+              <th className="px-6 py-3 text-left font-semibold text-fg">
                 Started
               </th>
-              <th className="px-6 py-3 text-left font-semibold text-text-primary">
+              <th className="px-6 py-3 text-left font-semibold text-fg">
                 Records
               </th>
-              <th className="px-6 py-3 text-left font-semibold text-text-primary">
+              <th className="px-6 py-3 text-left font-semibold text-fg">
                 Actions
               </th>
             </tr>
@@ -80,32 +80,32 @@ export function PipelineRuns() {
             {runs.map((run) => (
               <tr
                 key={run.id}
-                className="border-b border-hair hover:bg-surface-secondary transition-colors last:border-0"
+                className="border-b border-hair hover:bg-card transition-colors last:border-0"
               >
-                <td className="px-6 py-4 text-text-primary font-medium">
+                <td className="px-6 py-4 text-fg font-medium">
                   {run.source}
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2">
                     {getStatusIcon(run.status)}
-                    <span className="capitalize text-text-secondary">
+                    <span className="capitalize text-muted">
                       {run.status}
                     </span>
                   </div>
                 </td>
-                <td className="px-6 py-4 text-text-secondary">
+                <td className="px-6 py-4 text-muted">
                   {format(run.startedAt, 'MMM d, HH:mm')}
                 </td>
                 <td className="px-6 py-4">
-                  <div className="text-text-primary font-medium">
+                  <div className="text-fg font-medium">
                     {run.recordsImported} / {run.recordsProcessed}
                   </div>
-                  <div className="text-xs text-text-tertiary">
+                  <div className="text-xs text-faint">
                     {Math.round((run.recordsImported / run.recordsProcessed) * 100)}%
                   </div>
                 </td>
                 <td className="px-6 py-4">
-                  <button className="text-accent hover:text-accent-dark font-medium text-sm">
+                  <button className="text-accent hover:text-accent-hover font-medium text-sm">
                     View Details
                   </button>
                 </td>

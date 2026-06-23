@@ -63,12 +63,12 @@ export function AppShell() {
   return (
     <div className="flex h-screen bg-canvas">
       {/* Sidebar */}
-      <nav className="w-64 border-r border-hair bg-surface-primary">
+      <nav className="w-64 border-r border-hair bg-sidebar">
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="p-4 border-b border-hair">
             <h1 className="text-lg font-bold text-accent">GrantScout</h1>
-            <p className="text-xs text-text-tertiary">Admin Console</p>
+            <p className="text-xs text-faint">Admin Console</p>
           </div>
 
           {/* Navigation */}
@@ -83,8 +83,8 @@ export function AppShell() {
                       to={item.path}
                       className={`flex items-center gap-3 rounded px-3 py-2 text-sm transition-colors ${
                         active
-                          ? 'bg-accent/10 text-accent font-medium'
-                          : 'text-text-secondary hover:bg-surface-secondary'
+                          ? 'bg-accent-soft text-accent font-medium'
+                          : 'text-muted hover:bg-hair'
                       }`}
                     >
                       <Icon className="h-4 w-4" />
@@ -99,16 +99,16 @@ export function AppShell() {
           {/* User Section */}
           <div className="border-t border-hair p-4">
             <div className="mb-3">
-              <p className="text-xs font-medium text-text-secondary">
+              <p className="text-xs font-medium text-muted">
                 Signed in as
               </p>
-              <p className="text-sm font-medium text-text-primary truncate">
+              <p className="text-sm font-medium text-fg truncate">
                 {user?.email}
               </p>
             </div>
             <button
               onClick={() => logout()}
-              className="w-full flex items-center justify-center gap-2 rounded bg-surface-secondary px-3 py-2 text-sm text-text-secondary hover:bg-hair transition-colors"
+              className="w-full flex items-center justify-center gap-2 rounded bg-card px-3 py-2 text-sm text-muted hover:bg-hair transition-colors"
             >
               <LogOut className="h-4 w-4" />
               Sign out

@@ -31,10 +31,10 @@ export function Overview() {
   return (
     <div className="p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-text-primary">
+        <h1 className="text-3xl font-bold text-fg">
           Pipeline Overview
         </h1>
-        <p className="mt-2 text-text-secondary">
+        <p className="mt-2 text-muted">
           Monitor your grant discovery pipeline at a glance
         </p>
       </div>
@@ -46,20 +46,20 @@ export function Overview() {
           return (
             <div
               key={stat.label}
-              className="rounded-lg border border-hair bg-surface-primary p-6"
+              className="rounded-lg border border-hair bg-panel p-6"
             >
               <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-sm font-medium text-text-secondary">
+                <h3 className="text-sm font-medium text-muted">
                   {stat.label}
                 </h3>
-                <div className="rounded bg-accent/10 p-2">
+                <div className="rounded bg-accent-soft p-2">
                   <Icon className="h-5 w-5 text-accent" />
                 </div>
               </div>
-              <div className="mb-2 text-3xl font-bold text-text-primary">
+              <div className="mb-2 text-3xl font-bold text-fg">
                 {stat.value}
               </div>
-              <p className="text-xs text-text-tertiary">{stat.change}</p>
+              <p className="text-xs text-faint">{stat.change}</p>
             </div>
           )
         })}
@@ -67,8 +67,8 @@ export function Overview() {
 
       {/* Recent Activity */}
       <div className="mt-8">
-        <div className="rounded-lg border border-hair bg-surface-primary p-6">
-          <h2 className="mb-4 text-lg font-semibold text-text-primary">
+        <div className="rounded-lg border border-hair bg-panel p-6">
+          <h2 className="mb-4 text-lg font-semibold text-fg">
             Recent Pipeline Runs
           </h2>
           <div className="space-y-3">
@@ -78,10 +78,10 @@ export function Overview() {
                 className="flex items-center justify-between border-b border-hair pb-3 last:border-0"
               >
                 <div>
-                  <p className="font-medium text-text-primary">
+                  <p className="font-medium text-fg">
                     ANBI Source Extraction
                   </p>
-                  <p className="text-xs text-text-tertiary">
+                  <p className="text-xs text-faint">
                     Completed 2 hours ago
                   </p>
                 </div>
@@ -89,7 +89,7 @@ export function Overview() {
                   <div className="text-sm font-medium text-success">
                     ✓ Success
                   </div>
-                  <p className="text-xs text-text-tertiary">
+                  <p className="text-xs text-faint">
                     1,234 records imported
                   </p>
                 </div>

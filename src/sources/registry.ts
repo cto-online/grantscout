@@ -13,7 +13,10 @@ export const SOURCES: Source[] = [
     enabled: true,
     license: 'open data',
     fetchConfig: {
-      url: 'https://www.belastingdienst.nl/download/anbi.tsv',
+      // TODO: Find correct ANBI download URL from Belastingdienst
+      // Current endpoint returns HTML instead of TSV
+      // For now, using local test file
+      url: 'file://data/anbi-sample.tsv',
       format: 'tsv',
     },
   },

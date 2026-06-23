@@ -6,6 +6,7 @@ let db: any = null;
 // Initialize Firebase Admin SDK if not already initialized
 try {
   if (!admin.apps || admin.apps.length === 0) {
+    // Firebase Admin SDK automatically uses GOOGLE_APPLICATION_CREDENTIALS env var
     admin.initializeApp({
       projectId: config.gcpProjectId,
     });
@@ -13,9 +14,10 @@ try {
 
   db = admin.firestore();
   db.settings({ ignoreUndefinedProperties: true });
-} catch (e) {
+  console.log(`[firestore] Connected to ${config.gcpProjectId}`);
+} catch (e: any) {
   // Firestore not available (e.g., in test scripts without credentials)
-  console.warn('[firestore] Not initialized (credentials not available)');
+  console.warn(`[firestore] Not initialized: ${e.message}`);
 }
 
 // Typed collection references

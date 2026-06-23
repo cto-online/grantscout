@@ -28,21 +28,21 @@ export function ReviewQueue() {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'high':
-        return 'bg-error/10 text-error'
+        return 'bg-danger/10 text-danger'
       case 'medium':
         return 'bg-warning/10 text-warning'
       default:
-        return 'bg-info/10 text-info'
+        return 'bg-accent-soft text-accent'
     }
   }
 
   return (
     <div className="p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-text-primary">
+        <h1 className="text-3xl font-bold text-fg">
           Review Queue
         </h1>
-        <p className="mt-2 text-text-secondary">
+        <p className="mt-2 text-muted">
           {pendingReviews.length} items pending review
         </p>
       </div>
@@ -51,20 +51,20 @@ export function ReviewQueue() {
         {pendingReviews.map((review) => (
           <div
             key={review.id}
-            className="rounded-lg border border-hair bg-surface-primary p-6"
+            className="rounded-lg border border-hair bg-panel p-6"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
                   <AlertCircle className="h-5 w-5 text-warning" />
-                  <h3 className="font-semibold text-text-primary text-lg">
+                  <h3 className="font-semibold text-fg text-lg">
                     {review.title}
                   </h3>
                 </div>
-                <p className="text-sm text-text-secondary mb-3">
+                <p className="text-sm text-muted mb-3">
                   {review.reason}
                 </p>
-                <div className="flex gap-4 text-xs text-text-tertiary">
+                <div className="flex gap-4 text-xs text-faint">
                   <span>Source: {review.submittedBy}</span>
                   <span>
                     <span
@@ -81,7 +81,7 @@ export function ReviewQueue() {
                 <button className="rounded bg-success/10 p-2 text-success hover:bg-success/20 transition-colors">
                   <ThumbsUp className="h-5 w-5" />
                 </button>
-                <button className="rounded bg-error/10 p-2 text-error hover:bg-error/20 transition-colors">
+                <button className="rounded bg-danger/10 p-2 text-danger hover:bg-danger/20 transition-colors">
                   <ThumbsDown className="h-5 w-5" />
                 </button>
               </div>

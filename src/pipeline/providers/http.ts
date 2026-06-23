@@ -1,7 +1,20 @@
 import { bucket } from '../../core/gcs.js';
+import { readFileSync } from 'fs';
 
 export async function fetchHttp(url: string): Promise<Buffer> {
-  const response = await fetch(url);
+  // Handle local file:// URLs for testing
+  if (url.startsWith('file://')) {
+    const path = url.replace('file://', '');
+    return readFileSync(path);
+  }
+
+  // Handle HTTP(S) URLs
+  const response = await fetch(url, {
+    headers: {
+      'User-Agent': 'GrantScout/1.0 (grantscout-ingestion)',
+      'Accept': 'text/tab-separated-values, text/plain, */*',
+    },
+  });
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
   }

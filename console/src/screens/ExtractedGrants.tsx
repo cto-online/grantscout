@@ -48,31 +48,31 @@ export function ExtractedGrants() {
   return (
     <div className="p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-text-primary">
+        <h1 className="text-3xl font-bold text-fg">
           Extracted Grants
         </h1>
-        <p className="mt-2 text-text-secondary">
+        <p className="mt-2 text-muted">
           Review and manage extracted grant opportunities
         </p>
       </div>
 
-      <div className="rounded-lg border border-hair bg-surface-primary overflow-hidden">
+      <div className="rounded-lg border border-hair bg-panel overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-hair bg-surface-secondary">
-              <th className="px-6 py-3 text-left font-semibold text-text-primary">
+            <tr className="border-b border-hair bg-card">
+              <th className="px-6 py-3 text-left font-semibold text-fg">
                 Title
               </th>
-              <th className="px-6 py-3 text-left font-semibold text-text-primary">
+              <th className="px-6 py-3 text-left font-semibold text-fg">
                 Provider
               </th>
-              <th className="px-6 py-3 text-left font-semibold text-text-primary">
+              <th className="px-6 py-3 text-left font-semibold text-fg">
                 Amount
               </th>
-              <th className="px-6 py-3 text-left font-semibold text-text-primary">
+              <th className="px-6 py-3 text-left font-semibold text-fg">
                 Deadline
               </th>
-              <th className="px-6 py-3 text-left font-semibold text-text-primary">
+              <th className="px-6 py-3 text-left font-semibold text-fg">
                 Status
               </th>
             </tr>
@@ -81,24 +81,24 @@ export function ExtractedGrants() {
             {grants.map((grant) => (
               <tr
                 key={grant.id}
-                className="border-b border-hair hover:bg-surface-secondary transition-colors last:border-0"
+                className="border-b border-hair hover:bg-card transition-colors last:border-0"
               >
-                <td className="px-6 py-4 text-text-primary font-medium">
+                <td className="px-6 py-4 text-fg font-medium">
                   {grant.title}
                 </td>
-                <td className="px-6 py-4 text-text-secondary">
+                <td className="px-6 py-4 text-muted">
                   {grant.provider}
                 </td>
-                <td className="px-6 py-4 text-text-primary font-medium">
+                <td className="px-6 py-4 text-fg font-medium">
                   €{(grant.amount / 1000).toFixed(0)}k
                 </td>
-                <td className="px-6 py-4 text-text-secondary">
+                <td className="px-6 py-4 text-muted">
                   {format(grant.deadline, 'MMM d, yyyy')}
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2">
                     {getStatusIcon(grant.status)}
-                    <span className="capitalize text-text-secondary">
+                    <span className="capitalize text-muted">
                       {grant.status}
                     </span>
                   </div>

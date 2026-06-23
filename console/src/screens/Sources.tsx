@@ -50,10 +50,10 @@ export function Sources() {
   return (
     <div className="p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-text-primary">
+        <h1 className="text-3xl font-bold text-fg">
           Data Sources
         </h1>
-        <p className="mt-2 text-text-secondary">
+        <p className="mt-2 text-muted">
           Manage and monitor data extraction sources
         </p>
       </div>
@@ -62,16 +62,16 @@ export function Sources() {
         {sources.map((source) => (
           <div
             key={source.id}
-            className="flex items-center justify-between rounded-lg border border-hair bg-surface-primary p-6 hover:border-accent/50 transition-colors"
+            className="flex items-center justify-between rounded-lg border border-hair bg-panel p-6 hover:border-accent/50 transition-colors"
           >
             <div className="flex-1">
               <div className="flex items-center gap-3">
                 {getStatusIcon(source.status)}
                 <div>
-                  <h3 className="font-semibold text-text-primary">
+                  <h3 className="font-semibold text-fg">
                     {source.name}
                   </h3>
-                  <p className="text-sm text-text-secondary">
+                  <p className="text-sm text-muted">
                     {source.provider}
                   </p>
                 </div>
@@ -79,10 +79,10 @@ export function Sources() {
             </div>
             <div className="flex items-center gap-6">
               <div className="text-right">
-                <div className="text-sm text-text-secondary">
+                <div className="text-sm text-muted">
                   {source.enabled ? 'Enabled' : 'Disabled'}
                 </div>
-                <p className="text-xs text-text-tertiary">
+                <p className="text-xs text-faint">
                   Last run: {Math.floor(
                     (Date.now() - source.lastRun.getTime()) / 60000
                   )}{' '}
@@ -90,10 +90,10 @@ export function Sources() {
                 </p>
               </div>
               <div className="flex gap-2">
-                <button className="rounded px-3 py-2 text-sm font-medium text-accent hover:bg-accent/10 transition-colors">
+                <button className="rounded px-3 py-2 text-sm font-medium text-accent hover:bg-accent-soft transition-colors">
                   Edit
                 </button>
-                <button className="rounded px-3 py-2 text-sm font-medium text-accent hover:bg-accent/10 transition-colors">
+                <button className="rounded px-3 py-2 text-sm font-medium text-accent hover:bg-accent-soft transition-colors">
                   {source.enabled ? 'Disable' : 'Enable'}
                 </button>
               </div>
