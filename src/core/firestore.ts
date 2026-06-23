@@ -1,11 +1,11 @@
-import * as admin from 'firebase-admin';
+import admin from 'firebase-admin';
 import { config } from './config.js';
 
 let db: any = null;
 
 // Initialize Firebase Admin SDK if not already initialized
 try {
-  if (!admin.apps || admin.apps.length === 0) {
+  if (!admin.apps.length) {
     // Firebase Admin SDK automatically uses GOOGLE_APPLICATION_CREDENTIALS env var
     admin.initializeApp({
       projectId: config.gcpProjectId,
