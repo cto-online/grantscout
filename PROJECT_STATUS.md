@@ -192,10 +192,11 @@ docker run grantscout:latest --source anbi-nl
 | Item | Status | Next Action |
 |------|--------|-------------|
 | Firestore Integration | Ready | Configure GCP credentials, deploy |
-| Real Gemini Embeddings | Stub | Swap keyword mock for API (1 hour) |
+| Real Gemini Embeddings | ✅ Live | `gemini-embedding-001` (768-dim), key-gated, mock fallback |
 | HubSpot Live Sync | Dry-run | Set HUBSPOT_SYNC_ENABLED=true, test |
 | Hiring LLM Extraction | Mock | Wire Firecrawl + Gemini (2 hours) |
-| GrantAtlas API | Stub | Implement provider integration (1 hour) |
+| GrantAtlas API | ✅ Provider done | Reads `GRANTATLAS_READ_API_URL`; committed sample fallback until set |
+| Admin Console | ✅ Live | Wired to Firestore, real-time, review/source/settings actions |
 | Performance Tuning | TBD | Load test with 10K orgs |
 | EU Expansion | Phase 4 | Add non-NL sources |
 

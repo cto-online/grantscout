@@ -7,6 +7,7 @@ import type { Organization, AccountScore } from '../core/types.js';
  * Maps GrantScout org + score to HubSpot Company object.
  */
 export interface HubSpotProspect {
+  grantscout_id: string;   // stable upsert key (= org.canonicalId)
   name: string;
   country: string;
   grantscout_score: number;
@@ -27,6 +28,7 @@ export function toHubSpotProspect(org: Organization, score: AccountScore): HubSp
   const reasonsText = score.reasons.map(r => `${r.factor}: ${r.detail}`).join('; ');
 
   return {
+    grantscout_id: org.canonicalId,
     name: org.names[0] || 'Unknown',
     country: org.country,
     grantscout_score: score.score,
@@ -80,14 +82,77 @@ export async function syncProspectsToHubSpot(
     return { synced: 0, logged: hupsotPayloads.length };
   }
 
-  // TODO implement real HubSpot upsert
-  // - Batch upsert via Companies API
-  // - Handle rate limits (100/s for standard tier)
-  // - Map grantscout_* properties
-  // - Log sync result to syncLogs
-  console.log('[hubspot] Real sync not yet implemented');
+  // Real sync: idempotent batch upsert into HubSpot Companies.
+  try {
+    const synced = await upsertCompanies(hupsotPayloads);
+    console.log(`[hubspot] Synced ${synced} companies`);
+    if (collections.syncLogs) {
+      await collections.syncLogs.add({
+        service: 'hubspot',
+        timestamp: new Date().toISOString(),
+        prospectsCount: hupsotPayloads.length,
+        synced,
+        status: 'success',
+      });
+    }
+    return { synced, logged: hupsotPayloads.length };
+  } catch (e) {
+    console.error('[hubspot] Sync failed:', e);
+    if (collections.syncLogs) {
+      await collections.syncLogs.add({
+        service: 'hubspot',
+        timestamp: new Date().toISOString(),
+        prospectsCount: hupsotPayloads.length,
+        synced: 0,
+        status: 'error',
+        error: String(e),
+      });
+    }
+    throw e;
+  }
+}
 
-  return { synced: 0, logged: hupsotPayloads.length };
+const HUBSPOT_API = 'https://api.hubapi.com';
+const UPSERT_BATCH_SIZE = 100; // HubSpot batch limit
+
+/**
+ * Idempotently upsert companies into HubSpot via the CRM v3 batch upsert API,
+ * matching on the custom unique property `grantscout_id`.
+ *
+ * Portal prerequisite: create the `grantscout_*` company properties, and mark
+ * `grantscout_id` as a *unique* identifier so re-runs update rather than
+ * duplicate. Returns the number of companies upserted.
+ */
+export async function upsertCompanies(payloads: HubSpotProspect[]): Promise<number> {
+  let synced = 0;
+
+  for (let i = 0; i < payloads.length; i += UPSERT_BATCH_SIZE) {
+    const chunk = payloads.slice(i, i + UPSERT_BATCH_SIZE);
+    const inputs = chunk.map((p) => ({
+      idProperty: 'grantscout_id',
+      id: p.grantscout_id,
+      properties: p as unknown as Record<string, string | number>,
+    }));
+
+    const res = await fetch(`${HUBSPOT_API}/crm/v3/objects/companies/batch/upsert`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${config.hubspotAccessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ inputs }),
+    });
+
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`HubSpot upsert ${res.status}: ${body.slice(0, 300)}`);
+    }
+
+    const json = (await res.json()) as { results?: unknown[] };
+    synced += json.results?.length ?? chunk.length;
+  }
+
+  return synced;
 }
 
 /**

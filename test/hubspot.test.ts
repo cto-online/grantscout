@@ -43,6 +43,11 @@ describe('HubSpot orchestrator', () => {
       expect(prospect.grantscout_source_rsin).toBe('123456789');
     });
 
+    it('uses canonicalId as the stable upsert key', () => {
+      const prospect = toHubSpotProspect(mockOrg, mockScore);
+      expect(prospect.grantscout_id).toBe('test-org-1');
+    });
+
     it('includes all score components', () => {
       const prospect = toHubSpotProspect(mockOrg, mockScore);
 

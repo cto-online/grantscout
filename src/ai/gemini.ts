@@ -7,11 +7,43 @@ import { createHash } from 'crypto';
  */
 const embeddingCache = new Map<string, number[]>();
 
+const EMBED_MODEL = process.env.GEMINI_EMBED_MODEL || 'gemini-embedding-001';
+const EMBED_DIM = Number(process.env.GEMINI_EMBED_DIM || 768);
+
 /**
- * Generate Gemini embedding for org mission text.
- * Used for Fit scoring (mission ↔ ICP centroid similarity).
- * For now, returns deterministic mock embedding based on mission keywords.
- * TODO: Replace with real Gemini embedding API when configured.
+ * Call the Gemini embedding REST API (Google Generative Language).
+ * Returns a dense embedding vector (EMBED_DIM elements).
+ */
+async function realGeminiEmbed(mission: string): Promise<number[]> {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${EMBED_MODEL}:embedContent?key=${config.geminiApiKey}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: `models/${EMBED_MODEL}`,
+      content: { parts: [{ text: mission }] },
+      outputDimensionality: EMBED_DIM,
+    }),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Gemini embed ${res.status}: ${body.slice(0, 200)}`);
+  }
+  const json = (await res.json()) as { embedding?: { values?: number[] } };
+  const values = json.embedding?.values;
+  if (!values || values.length === 0) {
+    throw new Error('Gemini embed: empty response');
+  }
+  return values;
+}
+
+/**
+ * Generate an embedding for org mission text, used for Fit scoring
+ * (mission ↔ ICP centroid similarity).
+ *
+ * Uses the real Gemini embedding API when GEMINI_API_KEY is configured;
+ * otherwise (and on any API error) falls back to a deterministic keyword-based
+ * mock so development and tests run offline.
  */
 export async function embedMission(mission: string): Promise<number[]> {
   if (!mission) {
@@ -19,14 +51,24 @@ export async function embedMission(mission: string): Promise<number[]> {
   }
 
   const hash = createHash('sha256').update(mission).digest('hex');
-  if (embeddingCache.has(hash)) {
-    return embeddingCache.get(hash)!;
+  const cached = embeddingCache.get(hash);
+  if (cached) return cached;
+
+  let embedding: number[];
+  if (config.geminiApiKey) {
+    try {
+      embedding = await realGeminiEmbed(mission);
+    } catch (e) {
+      console.warn(
+        `[gemini] embedding failed, using keyword mock: ${(e as Error).message}`,
+      );
+      embedding = getMockEmbedding(mission);
+    }
+  } else {
+    embedding = getMockEmbedding(mission);
   }
 
-  // Mock embedding from keywords (deterministic for testing)
-  const embedding = getMockEmbedding(mission);
   embeddingCache.set(hash, embedding);
-
   return embedding;
 }
 

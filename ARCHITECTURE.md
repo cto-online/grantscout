@@ -156,6 +156,11 @@ Explainability
 ├─ reasons: [{factor, detail, weight, sourceId}]
 ├─ Example: "grant_awarded on 2026-01-15 (0.8 weight), ICP fit 0.72 (0.40 weight)"
 └─ Enables sales team to understand "why now, why this org"
+
+Persistence (scoreAndPersist, runs inline in the sensor)
+├─ Writes /accountScores/{orgId} for every resolved org after ingest
+├─ Enqueues low-confidence orgs (confidence < 0.6) into /reviewQueue
+└─ Non-fatal: a scoring error never fails the ingest
 ```
 
 ## Firestore Schema
@@ -184,24 +189,74 @@ Explainability
 ├─ contributingSignals: [signalIds]
 ├─ computedAt, modelVersion
 
-/syncLogs/{timestamp}
-├─ sourceId, status: success|error|dry-run
-├─ orgsIngested, signalsIngested
-├─ snapshotId
-├─ [service]: hubspot, error (if any)
+/syncLogs/{auto-id}            # one doc per pipeline run (the console's "Pipeline Runs")
+├─ sourceId | service (hubspot), timestamp (ISO string)
+├─ status: success | error | dry-run | queued (console-triggered) | running
+├─ orgsIngested, signalsIngested, scored, queuedForReview
+├─ snapshotId, error (if any)
 
 /sources/{id}
 ├─ name, country, provider, extractionMethod
 ├─ schedule (cron), enabled, license
 ├─ fetchConfig: {url, format, ...}
+└─ writers: pipeline (ingest) + console (enable/disable, edit, add)
 
-/reviewQueue/{id}
-├─ item: org or signal
-├─ reason: low_confidence|conflicting|manual_flag
-├─ confidence, errors
-├─ status: pending|reviewed|approved|rejected
-├─ reviewer, reviewedAt, decision
+/reviewQueue/{id}              # dual-writer: pipeline enqueues, console decides
+├─ orgId, title, priority: high|medium|low
+├─ reason, submittedBy, createdAt
+├─ status: pending | approved | rejected
+└─ reviewedBy, reviewedAt (set by the console)
+
+/settings/{console}            # console-owned configuration (single doc)
+├─ autoRunEnabled, emailOnFailure, debugLogging
+├─ minRelevanceScore, minFitScore
+└─ updatedAt, updatedBy
 ```
+
+## Admin Console (Frontend)
+
+A React admin console (`console/`) gives the GrantMaster team eyes on the
+pipeline and a place to action it. It reads and writes Firestore **directly**
+via the Firebase Web SDK — there is no separate API tier, so the **security
+rules are the API contract**.
+
+```
+Browser (team member)
+│
+├─ Firebase Auth ──► ID token (email_verified + @grantmaster.nl)
+│
+└─ Firestore Web SDK
+     ├─ reads  ─► syncLogs · organizations · accountScores · signals
+     │            sources · reviewQueue · settings
+     └─ writes ─► reviewQueue (approve/reject) · sources (toggle/edit/add)
+                  settings (save) · syncLogs (queue a manual run)
+```
+
+**Stack:** React 19 · Vite · TypeScript · Tailwind v4 · React Router ·
+TanStack Query (server cache) · Firebase v12 · lucide-react.
+
+**Data layer (`console/src/data/`):** typed hooks per collection, Firestore
+converters (Timestamp/ISO → `Date`), and a query-key factory. Reads use React
+Query; the monitoring screens (Pipeline Runs, Review Queue) use Firestore
+`onSnapshot` for **real-time** updates; writes are React Query mutations.
+
+| Route | Reads | Writes |
+|-------|-------|--------|
+| `/` Overview | counts + recent runs | — |
+| `/runs`, `/runs/:id` | syncLogs (live) | trigger run |
+| `/sources` | sources | enable/disable · edit · add |
+| `/organizations`, `/organizations/:id` | organizations (+ score + signals) | — |
+| `/review` | reviewQueue pending (live) | approve / reject |
+| `/scoring` | accountScores (joined to org names) | — |
+| `/settings` | settings/console | save config |
+
+**Local development:** runs against the **Firebase Emulator Suite** (Auth +
+Firestore) seeded by `console/scripts/seed-emulator.ts`, with a "Dev sign-in"
+button when `VITE_USE_EMULATOR=true` — QA needs no Google account and never
+touches production. Emulator UI `:4000`, console `:5173`.
+
+**Deploy:** static build to **Firebase Hosting** (`firebase.json` → site
+`grantscout-88aa6`, SPA rewrite to `index.html`).
 
 ## Cloud Infrastructure
 
@@ -214,18 +269,16 @@ Cloud Scheduler
     │
     ├─ Extract → Normalize → Resolve
     │
-    └─ Write to Firestore
-       │
-       └─ (Trigger) Account Scorer
-           │
-           ├─ Fetch org + signals
-           ├─ Compute score
-           └─ Write accountScores
-              │
-              └─ (Trigger) HubSpot Sync
-                  │
-                  ├─ Rank prospects
-                  └─ Upsert companies
+    ├─ Write organizations + signals to Firestore
+    │
+    ├─ Score inline (scoreAndPersist)
+    │   ├─ Write accountScores
+    │   └─ Enqueue low-confidence orgs → reviewQueue
+    │
+    └─ HubSpot Sync (rank prospects → upsert companies, dry-run by default)
+
+Firestore ──► Admin Console (Firebase Hosting)
+           └─ team reads dashboards + actions review/sources/settings
 
 Monitoring
 ├─ Cloud Logging (audit trail, error detection)
@@ -237,7 +290,8 @@ Monitoring
 
 ```
 Development (Local)
-├─ Firestore Emulator (gcloud CLI)
+├─ Firebase Emulator Suite (Auth + Firestore) + seed script
+├─ Console: VITE_USE_EMULATOR=true → "Dev sign-in" (no Google OAuth)
 ├─ GCS (local mock or dev bucket)
 ├─ Gemini mock (keyword-based embeddings)
 └─ HubSpot: dry-run only
@@ -282,13 +336,19 @@ Production (Main GCP Project)
 
 ### Firestore Security Rules
 
+`isService()` = no auth uid (Cloud Run ingest). `isTeam()` = `email_verified`
+&& email `matches('.*@grantmaster[.]nl$')` (RE2 — Firestore rules have no
+`endsWith`). The emulator dev user `dev@grantmaster.nl` satisfies `isTeam()`.
+
 ```
-organizations: ✓ Service account writes, ✓ Team reads
-signals:       ✓ Service account writes, ✓ Team reads
-accountScores: ✓ Service account writes, ✓ Team reads
-syncLogs:      ✓ Service account writes, ✓ Team reads
-reviewQueue:   ✓ Team read/write
-rawSnapshots:  ✓ Service account writes, ✗ Disabled reads (use GCS)
+organizations: ✓ Service writes,        ✓ Team reads
+signals:       ✓ Service writes,        ✓ Team reads
+accountScores: ✓ Service writes,        ✓ Team reads
+syncLogs:      ✓ Service + Team writes, ✓ Team reads   (team may enqueue a manual run)
+sources:       ✓ Service + Team writes, ✓ Team reads   (console toggles/edits config)
+reviewQueue:   ✓ Team read/write                       (pipeline enqueues, console decides)
+settings:      ✓ Team read/write                       (console config; doc: console)
+rawSnapshots:  ✓ Service writes,        ✗ Disabled reads (use GCS)
 ```
 
 ## Roadmap
@@ -299,15 +359,17 @@ rawSnapshots:  ✓ Service account writes, ✗ Disabled reads (use GCS)
 - HubSpot dry-run sync
 - End-to-end testing
 
-### Phase 2 🔄 In Progress
+### Phase 2 ✅ Complete
 - Hiring signals (LLM-based)
 - Cloud Run deployment (Dockerfile, Cloud Build)
-- Firestore persistence
+- Firestore persistence (orgs, signals, scores, review queue)
+- Admin console wired to Firestore (live dashboards + review/source/settings actions, real-time)
 - Monitoring & operations
 
 ### Phase 3 (Next)
 - Organic/viral loops (Beacon: content, referral, funder-led)
-- Real Gemini embeddings (swap mock)
+- ✅ Real Gemini embeddings (`gemini-embedding-001`, key-gated with mock fallback)
+- ✅ GrantAtlas awardee provider (reads API when configured, sample fallback otherwise)
 - HubSpot live sync + sync tracking
 - GrantAtlas funder linking
 

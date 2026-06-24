@@ -91,7 +91,7 @@ The admin console provides:
 - **Overview Dashboard** - Pipeline stats and recent activity
 - **Pipeline Runs** - Monitor all extraction runs
 - **Data Sources** - Manage active data providers
-- **Extracted Grants** - View and filter discovered grants
+- **Organizations** - Search/filter extracted NGO orgs, with a detail view (score + signals)
 - **Review Queue** - Manual review of flagged items
 - **Scoring Results** - AI fit scoring visualization
 - **Settings** - Configuration and preferences
@@ -145,7 +145,7 @@ npm run test:watch
 
 - **Monorepo**: Uses npm workspaces to keep backend and frontend together
 - **Authentication**: Firebase handles auth; backend can verify tokens
-- **API Integration**: Console can call backend via Firebase Functions or REST API
+- **Data Access**: Console reads/writes Firestore **directly** via the Firebase Web SDK (no separate API); the security rules are the contract. Pipeline Runs + Review Queue use real-time `onSnapshot`.
 - **State Management**: React Query for server state, Context for auth state
 - **Styling**: Tailwind CSS v4 with vite plugin (no PostCSS needed)
 
@@ -164,10 +164,22 @@ npm run test:watch
 - Tailwind CSS v4 uses a new Vite plugin, no PostCSS config needed
 - Check vite.config.ts includes tailwindcss plugin
 
-## Next Steps
+## Status
 
-1. Set up Firebase project and get credentials
-2. Implement API routes for data fetching (currently using placeholder data)
-3. Connect React Query hooks to actual API endpoints
-4. Set up CI/CD for automatic deploys
-5. Add unit tests for key screens and components
+The console is wired end-to-end to Firestore — every screen reads live data and
+every action (approve/reject, source toggle/edit/add, run trigger, settings save)
+persists. Local QA runs against the Firebase Emulator Suite:
+
+```bash
+npm run emulators        # Auth + Firestore emulators (root)
+npm run emulators:seed   # realistic demo data
+npm run dev:console      # then use the "Dev sign-in" button
+```
+
+### Remaining
+
+1. Deploy the static build to Firebase Hosting (`firebase deploy --only hosting`)
+2. CI/CD for automatic console deploys
+3. Broaden screen-level tests (data converters + tone helpers are covered)
+4. Decide whether grant opportunities become a distinct entity (today
+   "Organizations" reads the `organizations` collection — the backend's prospects)
