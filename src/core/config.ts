@@ -7,6 +7,12 @@ export const config = {
   typesenseApiKey: process.env.TYPESENSE_API_KEY || '',
   grantatlasReadApiUrl: process.env.GRANTATLAS_READ_API_URL || '',
   grantatlasApiKey: process.env.GRANTATLAS_API_KEY || '',
+  // GrantAtlas Console Admin API (opportunities catalog). Auth is a Firebase
+  // ID token minted via custom-token exchange (see sources/grantatlas/client.ts).
+  grantatlasBaseUrl: process.env.GRANTATLAS_BASE_URL || 'https://grantatlas-prod.web.app',
+  grantatlasFbApiKey: process.env.GRANTATLAS_FB_API_KEY || '',
+  grantatlasProjectId: process.env.GRANTATLAS_PROJECT_ID || '',
+  grantatlasBotUid: process.env.GRANTATLAS_BOT_UID || 'pipeline-bot',
   hubspotAccessToken: process.env.HUBSPOT_ACCESS_TOKEN || '',
   hubspotSyncEnabled: process.env.HUBSPOT_SYNC_ENABLED === 'true',
 };

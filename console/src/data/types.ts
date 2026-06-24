@@ -92,6 +92,29 @@ export interface SignalSummary {
   sourceId?: string
 }
 
+// ---- Grant opportunities (collection: grants) — from GrantAtlas ----
+export interface GrantOpportunity {
+  id: string
+  title: string
+  description?: string
+  funderId: string
+  funderName?: string
+  fundingMin?: number
+  fundingMax?: number
+  currency?: string
+  dateOpen?: Date
+  dateClose?: Date
+  rolling?: boolean
+  geographicScope?: string[]
+  sectors?: string[]
+  organizationTypes?: string[]
+  grantType?: string
+  tags?: string[]
+  ngoEligible?: boolean
+  status: string // active | upcoming | closed | archived
+  sourceUrl?: string
+}
+
 // ---- Sources (collection: sources) ----
 export type AcquisitionTier = 'api' | 'feed' | 'scrape' | 'internal'
 export type ExtractionMethod = 'deterministic' | 'llm'

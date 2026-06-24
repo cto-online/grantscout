@@ -51,6 +51,12 @@ service cloud.firestore {
       allow read, write: if isTeam();
     }
 
+    // GrantAtlas opportunities catalog (ingested by the pipeline).
+    match /grants/{document=**} {
+      allow write: if isService();
+      allow read: if isTeam();
+    }
+
     match /rawSnapshots/{document=**} {
       allow write: if isService();
       allow read: if false; // Immutable, accessed via GCS
