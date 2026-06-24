@@ -1,14 +1,8 @@
 import type { Organization, Signal, AccountScore } from '../core/types.js';
 import { computeAccountScore } from './accountScore.js';
 import { computeICPCentroid, computeFitScore } from '../ai/gemini.js';
+import { ICP_SEED_MISSIONS } from './icp.js';
 import { collections } from '../core/firestore.js';
-
-// Demo ICP seeds — in production, derive from GrantMaster customer missions.
-const ICP_SEED_MISSIONS = [
-  'Education and workforce development',
-  'Healthcare and social services',
-  'Community development and poverty alleviation',
-];
 
 const REVIEW_CONFIDENCE_THRESHOLD = 0.6;
 const FIRESTORE_BATCH_LIMIT = 450; // hard limit is 500 ops/batch
