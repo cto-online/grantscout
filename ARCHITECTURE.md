@@ -337,8 +337,9 @@ Production (Main GCP Project)
 ### Firestore Security Rules
 
 `isService()` = no auth uid (Cloud Run ingest). `isTeam()` = `email_verified`
-&& email `matches('.*@grantmaster[.]nl$')` (RE2 — Firestore rules have no
-`endsWith`). The emulator dev user `dev@grantmaster.nl` satisfies `isTeam()`.
+&& email on an allowed domain (`@grantmaster.nl` or `@gible.com`), matched with
+RE2 `matches()` (Firestore rules have no `endsWith`). The emulator dev user
+`dev@grantmaster.nl` satisfies `isTeam()`.
 
 ```
 organizations: ✓ Service writes,        ✓ Team reads

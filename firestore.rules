@@ -5,13 +5,14 @@ service cloud.firestore {
     function isService() {
       return request.auth == null || request.auth.uid == null;
     }
-    // Verified GrantMaster team member (console users).
+    // Verified team member (console users). Allowed email domains below.
     // NB: Firestore rules have no string.endsWith(); use matches() with a
     // RE2 regex anchored to the domain.
     function isTeam() {
       return request.auth != null &&
              request.auth.token.email_verified == true &&
-             request.auth.token.email.matches('.*@grantmaster[.]nl$');
+             (request.auth.token.email.matches('.*@grantmaster[.]nl$') ||
+              request.auth.token.email.matches('.*@gible[.]com$'));
     }
 
     match /organizations/{document=**} {
