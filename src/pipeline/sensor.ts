@@ -3,6 +3,7 @@ import { fetchHttp, storeSnapshot } from './providers/http.js';
 import { extractAnbi } from './extractors/anbi.js';
 import { normalizeOrg, normalizeSignal } from './normalizer.js';
 import { resolveOrganizations, deduplicateSignals, writeOrganizationsAndSignals } from './resolver.js';
+import { enrichMissions } from './enrich.js';
 import { scoreAndPersist } from '../scoring/persist.js';
 import { collections } from '../core/firestore.js';
 
@@ -98,9 +99,19 @@ export async function runSensor(source: Source): Promise<{ orgs: number; signals
 
     console.log(`[sensor] Resolved to ${resolvedOrgs.size} unique orgs`);
 
+    // 5b. Enrich: borrow missions for missionless orgs (e.g. GrantAtlas awardees)
+    // by matching them on name against mission-bearing orgs (e.g. ANBI), so Fit
+    // can be scored for real instead of the 0.3 fallback.
+    const { orgs: orgsToWrite, enriched } = await enrichMissions(
+      Array.from(resolvedOrgs.values()),
+    );
+    if (enriched > 0) {
+      console.log(`[sensor] Enriched ${enriched} orgs with missions (real Fit)`);
+    }
+
     // 6. Write to Firestore
     const writeResult = await writeOrganizationsAndSignals(
-      Array.from(resolvedOrgs.values()),
+      orgsToWrite,
       deduplicatedSignals
     );
 
@@ -109,10 +120,7 @@ export async function runSensor(source: Source): Promise<{ orgs: number; signals
     // 6b. Score + enqueue review (secondary — never fail ingest on a scoring error)
     let scoring = { scored: 0, queuedForReview: 0 };
     try {
-      scoring = await scoreAndPersist(
-        Array.from(resolvedOrgs.values()),
-        deduplicatedSignals,
-      );
+      scoring = await scoreAndPersist(orgsToWrite, deduplicatedSignals);
       console.log(`[sensor] Scored ${scoring.scored} orgs, queued ${scoring.queuedForReview} for review`);
     } catch (e) {
       console.warn('[sensor] Scoring step failed (non-fatal):', e);
