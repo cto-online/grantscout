@@ -12,7 +12,13 @@ export const SOURCES: Source[] = [
     schedule: '0 3 * * 1',          // weekly Monday 03:00
     enabled: true,
     license: 'open data',
-    fetchConfig: { format: 'csv' },
+    fetchConfig: {
+      // TODO: Find correct ANBI download URL from Belastingdienst
+      // Current endpoint returns HTML instead of TSV
+      // For now, using local test file
+      url: 'file://data/anbi-sample.tsv',
+      format: 'tsv',
+    },
   },
   {
     id: 'grantatlas-awardees',

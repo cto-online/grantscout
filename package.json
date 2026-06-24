@@ -10,7 +10,14 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint src test --ext .ts",
-    "pipeline:once": "tsx src/index.ts"
+    "pipeline:once": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "dev:console": "cd console && npm run dev",
+    "emulators": "firebase emulators:start --only auth,firestore",
+    "emulators:seed": "tsx console/scripts/seed-emulator.ts",
+    "docker:build": "docker build -t grantscout:latest .",
+    "docker:test": "docker run --rm grantscout:latest --source anbi-nl"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.14.0",

@@ -4,3 +4,21 @@ dist/
 .env.local
 *.log
 .DS_Store
+
+# Secrets — service-account keys must never be committed
+*-key.json
+grantscout-key.json
+
+# Firebase emulator / deploy artifacts
+.firebase/
+.emulator-data/
+
+# Build / tooling artifacts
+*.tsbuildinfo
+console/vite.config.js
+console/vite.config.d.ts
+
+# Local QA artifacts (screenshots, Playwright output)
+screenshots/
+.playwright-mcp/
+grantscout-login.png
