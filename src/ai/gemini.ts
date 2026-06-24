@@ -153,6 +153,50 @@ export async function computeFitScore(orgMission: string, icpCentroid: number[])
   return cosineSimilarity(orgEmbedding, icpCentroid);
 }
 
+const GEN_MODEL = process.env.GEMINI_GEN_MODEL || 'gemini-flash-latest';
+
+/**
+ * Extract a concise mission/doelstelling for an org from scraped website text,
+ * using the Gemini generation API. Returns undefined when no key, on API error,
+ * or when the model can't determine a mission.
+ */
+export async function extractDoelstelling(
+  orgName: string,
+  pageText: string,
+): Promise<string | undefined> {
+  if (!config.geminiApiKey || !pageText.trim()) return undefined;
+  const prompt =
+    `Hieronder staat websitetekst van de Nederlandse goededoelenorganisatie "${orgName}". ` +
+    `Geef in een bondige zin (in het Nederlands) de doelstelling/missie van de organisatie. ` +
+    `Als de tekst geen duidelijke doelstelling bevat, antwoord exact: ONBEKEND.\n\nTekst:\n` +
+    pageText.slice(0, 5000);
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEN_MODEL}:generateContent?key=${config.geminiApiKey}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        // thinkingBudget 0 so the token budget goes to the answer, not reasoning.
+        generationConfig: {
+          temperature: 0,
+          maxOutputTokens: 200,
+          thinkingConfig: { thinkingBudget: 0 },
+        },
+      }),
+    });
+    if (!res.ok) return undefined;
+    const json = (await res.json()) as {
+      candidates?: { content?: { parts?: { text?: string }[] } }[];
+    };
+    const text = json.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    if (!text || /^onbekend/i.test(text)) return undefined;
+    return text;
+  } catch {
+    return undefined;
+  }
+}
+
 /**
  * Structured extraction from unstructured content.
  * Used for long-tail sources (job posts, web content).
