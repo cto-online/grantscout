@@ -10,7 +10,7 @@ import {
   Play,
   CheckSquare,
   Zap,
-  BookOpen,
+  Building2,
   Menu,
   X,
 } from 'lucide-react'
@@ -19,7 +19,7 @@ const navItems = [
   { label: 'Overview', path: '/', icon: BarChart3 },
   { label: 'Pipeline Runs', path: '/runs', icon: Play },
   { label: 'Sources', path: '/sources', icon: Database },
-  { label: 'Extracted Grants', path: '/grants', icon: BookOpen },
+  { label: 'Organizations', path: '/organizations', icon: Building2 },
   { label: 'Review Queue', path: '/review', icon: CheckSquare },
   { label: 'Scoring Results', path: '/scoring', icon: Zap },
   { label: 'Settings', path: '/settings', icon: Settings },

@@ -13,8 +13,8 @@ const Overview = lazy(() => import('@/screens/Overview').then((m) => ({ default:
 const PipelineRuns = lazy(() => import('@/screens/PipelineRuns').then((m) => ({ default: m.PipelineRuns })))
 const RunDetail = lazy(() => import('@/screens/RunDetail').then((m) => ({ default: m.RunDetail })))
 const Sources = lazy(() => import('@/screens/Sources').then((m) => ({ default: m.Sources })))
-const ExtractedGrants = lazy(() => import('@/screens/ExtractedGrants').then((m) => ({ default: m.ExtractedGrants })))
-const GrantDetail = lazy(() => import('@/screens/GrantDetail').then((m) => ({ default: m.GrantDetail })))
+const Organizations = lazy(() => import('@/screens/Organizations').then((m) => ({ default: m.Organizations })))
+const OrganizationDetail = lazy(() => import('@/screens/OrganizationDetail').then((m) => ({ default: m.OrganizationDetail })))
 const ReviewQueue = lazy(() => import('@/screens/ReviewQueue').then((m) => ({ default: m.ReviewQueue })))
 const ScoringResults = lazy(() => import('@/screens/ScoringResults').then((m) => ({ default: m.ScoringResults })))
 const Settings = lazy(() => import('@/screens/Settings').then((m) => ({ default: m.Settings })))
@@ -50,8 +50,8 @@ export function AuthGate() {
           <Route path="runs" element={<PipelineRuns />} />
           <Route path="runs/:id" element={<RunDetail />} />
           <Route path="sources" element={<Sources />} />
-          <Route path="grants" element={<ExtractedGrants />} />
-          <Route path="grants/:id" element={<GrantDetail />} />
+          <Route path="organizations" element={<Organizations />} />
+          <Route path="organizations/:id" element={<OrganizationDetail />} />
           <Route path="review" element={<ReviewQueue />} />
           <Route path="scoring" element={<ScoringResults />} />
           <Route path="settings" element={<Settings />} />

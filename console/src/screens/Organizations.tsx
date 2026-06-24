@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search } from 'lucide-react'
-import { useGrants } from '@/data/useGrants'
+import { useOrganizations } from '@/data/useOrganizations'
 import { SkeletonRows } from '@/components/states/Skeleton'
 import { ErrorState } from '@/components/states/ErrorState'
 import { EmptyState } from '@/components/states/EmptyState'
@@ -18,8 +18,8 @@ const TYPES: (OrgType | 'all')[] = [
   'social_enterprise',
 ]
 
-export function ExtractedGrants() {
-  const { data, isLoading, isError, error, refetch } = useGrants()
+export function Organizations() {
+  const { data, isLoading, isError, error, refetch } = useOrganizations()
   const navigate = useNavigate()
   const [q, setQ] = useState('')
   const [type, setType] = useState<OrgType | 'all'>('all')
@@ -40,9 +40,9 @@ export function ExtractedGrants() {
   return (
     <div className="p-6 md:p-8">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-fg">Extracted Grants</h1>
+        <h1 className="text-3xl font-bold text-fg">Organizations</h1>
         <p className="mt-2 text-muted">
-          Organizations extracted from connected sources
+          NGO organizations extracted from connected sources
         </p>
       </div>
 
@@ -94,7 +94,7 @@ export function ExtractedGrants() {
                 {rows.map((o) => (
                   <tr
                     key={o.canonicalId}
-                    onClick={() => navigate(`/grants/${o.canonicalId}`)}
+                    onClick={() => navigate(`/organizations/${o.canonicalId}`)}
                     className="cursor-pointer border-b border-hair last:border-0 hover:bg-card/50"
                   >
                     <td className="px-4 py-3 font-medium text-fg">{o.names[0]}</td>

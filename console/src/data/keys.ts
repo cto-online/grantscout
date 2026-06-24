@@ -10,9 +10,9 @@ export const qk = {
   sources: {
     all: ['sources'] as const,
   },
-  grants: {
-    all: ['grants'] as const,
-    detail: (id: string) => ['grants', id] as const,
+  organizations: {
+    all: ['organizations'] as const,
+    detail: (id: string) => ['organizations', id] as const,
   },
   scores: {
     all: ['scores'] as const,

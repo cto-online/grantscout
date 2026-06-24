@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Activity } from 'lucide-react'
-import { useGrantDetail } from '@/data/useGrants'
+import { useOrganizationDetail } from '@/data/useOrganizations'
 import { Skeleton } from '@/components/states/Skeleton'
 import { ErrorState } from '@/components/states/ErrorState'
 import { EmptyState } from '@/components/states/EmptyState'
@@ -30,19 +30,19 @@ function Component({ label, value }: { label: string; value: number }) {
   )
 }
 
-export function GrantDetail() {
+export function OrganizationDetail() {
   const { id = '' } = useParams()
   const navigate = useNavigate()
-  const { data, isLoading, isError, error, refetch } = useGrantDetail(id)
+  const { data, isLoading, isError, error, refetch } = useOrganizationDetail(id)
 
   return (
     <div className="p-6 md:p-8">
       <button
-        onClick={() => navigate('/grants')}
+        onClick={() => navigate('/organizations')}
         className="mb-6 flex items-center gap-2 text-sm text-muted hover:text-fg"
       >
         <ArrowLeft className="h-4 w-4" />
-        Back to grants
+        Back to organizations
       </button>
 
       {isLoading && (

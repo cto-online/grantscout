@@ -12,9 +12,9 @@ import { qk } from './keys'
 import { toOrganization, toAccountScore, toSignalSummary } from './converters'
 import type { Organization, AccountScore, SignalSummary } from './types'
 
-export function useGrants() {
+export function useOrganizations() {
   return useQuery({
-    queryKey: qk.grants.all,
+    queryKey: qk.organizations.all,
     queryFn: async (): Promise<Organization[]> => {
       const snap = await getDocs(collection(db, 'organizations'))
       return snap.docs
@@ -24,16 +24,16 @@ export function useGrants() {
   })
 }
 
-export interface GrantDetail {
+export interface OrgDetail {
   org: Organization | null
   score: AccountScore | null
   signals: SignalSummary[]
 }
 
-export function useGrantDetail(id: string) {
+export function useOrganizationDetail(id: string) {
   return useQuery({
-    queryKey: qk.grants.detail(id),
-    queryFn: async (): Promise<GrantDetail> => {
+    queryKey: qk.organizations.detail(id),
+    queryFn: async (): Promise<OrgDetail> => {
       const [orgSnap, scoreSnap, sigSnap] = await Promise.all([
         getDoc(doc(db, 'organizations', id)),
         getDoc(doc(db, 'accountScores', id)),
