@@ -1,9 +1,13 @@
 name: pipeline
 
 # Periodic ingestion -> score -> review-queue, writing to production Firestore.
-# Requires two repo secrets (Settings -> Secrets and variables -> Actions):
-#   GCP_SA_KEY      full JSON of a service-account key with Firestore + GCS write
-#   GEMINI_API_KEY  Gemini API key (for real Fit embeddings)
+# Requires repo secrets (Settings -> Secrets and variables -> Actions):
+#   GCP_SA_KEY             full JSON of a service-account key (Firestore + GCS write)
+#   GEMINI_API_KEY         Gemini API key (real Fit embeddings)
+#   GRANTATLAS_FB_API_KEY  GrantAtlas Firebase web API key (for the grants catalog)
+#   GRANTATLAS_PROJECT_ID  GrantAtlas Firebase project id
+# The grantatlas-grants source falls back to a sample until those are set AND the
+# pipeline-bot user is created + allowlisted on the GrantAtlas side.
 on:
   schedule:
     - cron: '0 4 * * *' # daily 04:00 UTC
@@ -11,7 +15,7 @@ on:
     inputs:
       sources:
         description: Comma-separated source ids to run
-        default: anbi-nl,grantatlas-awardees
+        default: anbi-nl,grantatlas-awardees,grantatlas-grants
 
 concurrency:
   group: pipeline
@@ -38,8 +42,11 @@ jobs:
           GCP_PROJECT_ID: grantscout-88aa6
           GCS_RAW_BUCKET: grantscout-88aa6-grantscout-raw
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GRANTATLAS_BASE_URL: https://grantatlas-prod.web.app
+          GRANTATLAS_FB_API_KEY: ${{ secrets.GRANTATLAS_FB_API_KEY }}
+          GRANTATLAS_PROJECT_ID: ${{ secrets.GRANTATLAS_PROJECT_ID }}
           # workflow_dispatch input is read via env (not interpolated into the shell)
-          SOURCES: ${{ github.event.inputs.sources || 'anbi-nl,grantatlas-awardees' }}
+          SOURCES: ${{ github.event.inputs.sources || 'anbi-nl,grantatlas-awardees,grantatlas-grants' }}
         run: |
           IFS=',' read -ra SRC <<< "$SOURCES"
           for s in "${SRC[@]}"; do
