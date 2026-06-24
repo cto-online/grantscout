@@ -368,7 +368,8 @@ rawSnapshots:  ✓ Service writes,        ✗ Disabled reads (use GCS)
 
 ### Phase 3 (Next)
 - Organic/viral loops (Beacon: content, referral, funder-led)
-- Real Gemini embeddings (swap mock)
+- ✅ Real Gemini embeddings (`gemini-embedding-001`, key-gated with mock fallback)
+- ✅ GrantAtlas awardee provider (reads API when configured, sample fallback otherwise)
 - HubSpot live sync + sync tracking
 - GrantAtlas funder linking
 

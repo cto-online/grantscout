@@ -24,8 +24,9 @@ export async function runSensor(source: Source): Promise<{ orgs: number; signals
       console.log(`[sensor] Fetching from ${url}`);
       rawData = await fetchHttp(url);
     } else if (source.provider === 'grantatlas') {
-      // TODO implement GrantAtlas provider
-      throw new Error(`${source.id}: provider ${source.provider} not yet implemented`);
+      const { fetchGrantAtlasAwardees } = await import('./providers/grantatlas.js');
+      console.log(`[sensor] Fetching GrantAtlas awardees`);
+      rawData = await fetchGrantAtlasAwardees(source);
     } else if (source.provider === 'firecrawl') {
       // TODO implement Firecrawl provider
       throw new Error(`${source.id}: provider ${source.provider} not yet implemented`);

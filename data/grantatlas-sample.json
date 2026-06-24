@@ -1,0 +1,10 @@
+[
+  { "awardeeNameNormalized": "Stichting Leergeld Nederland", "country": "NL", "funderId": "oranje-fonds", "grantId": "of-2026-0142", "awardedAmount": 75000, "awardedDate": "2026-05-18T00:00:00Z", "status": "awarded" },
+  { "awardeeNameNormalized": "Voedselbanken Nederland", "country": "NL", "funderId": "vsbfonds", "grantId": "vsb-2026-0098", "awardedAmount": 120000, "awardedDate": "2026-04-30T00:00:00Z", "status": "awarded" },
+  { "awardeeNameNormalized": "War Child Nederland", "country": "NL", "funderId": "postcode-loterij", "grantId": "pl-2026-2210", "awardedAmount": 500000, "awardedDate": "2026-06-01T00:00:00Z", "status": "awarded" },
+  { "awardeeNameNormalized": "Stichting Natuurmonumenten", "country": "NL", "funderId": "prins-bernhard-cultuurfonds", "grantId": "pbcf-2026-0451", "awardedAmount": 90000, "awardedDate": "2026-03-22T00:00:00Z", "status": "awarded" },
+  { "awardeeNameNormalized": "Jeugdfonds Sport en Cultuur", "country": "NL", "funderId": "kansspelfonds", "grantId": "ksf-2026-0077", "awardedAmount": 60000, "awardedDate": "2026-05-05T00:00:00Z", "status": "applied" },
+  { "awardeeNameNormalized": "Oxfam Novib", "country": "NL", "funderId": "ministerie-bz", "grantId": "minbz-2026-0303", "awardedAmount": 250000, "awardedDate": "2026-02-14T00:00:00Z", "status": "applied" },
+  { "awardeeNameNormalized": "Het Vergeten Kind", "country": "NL", "funderId": "oranje-fonds", "grantId": "of-2026-0188", "awardedAmount": 45000, "awardedDate": "2026-06-10T00:00:00Z", "status": "awarded" },
+  { "awardeeNameNormalized": "Liliane Fonds", "country": "NL", "funderId": "postcode-loterij", "grantId": "pl-2026-2245", "awardedAmount": 300000, "awardedDate": "2026-04-08T00:00:00Z", "status": "awarded" }
+]
