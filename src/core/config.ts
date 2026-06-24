@@ -5,6 +5,7 @@ export const config = {
   geminiApiKey: process.env.GEMINI_API_KEY || '',
   typesenseHost: process.env.TYPESENSE_HOST || '',
   typesenseApiKey: process.env.TYPESENSE_API_KEY || '',
+  firecrawlApiKey: process.env.FIRECRAWL_API_KEY || '',
   grantatlasReadApiUrl: process.env.GRANTATLAS_READ_API_URL || '',
   grantatlasApiKey: process.env.GRANTATLAS_API_KEY || '',
   // GrantAtlas Console Admin API (opportunities catalog). Auth is a Firebase

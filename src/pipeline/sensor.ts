@@ -30,8 +30,9 @@ export async function runSensor(source: Source): Promise<{ orgs: number; signals
       console.log(`[sensor] Fetching GrantAtlas awardees`);
       rawData = await fetchGrantAtlasAwardees(source);
     } else if (source.provider === 'firecrawl') {
-      // TODO implement Firecrawl provider
-      throw new Error(`${source.id}: provider ${source.provider} not yet implemented`);
+      const { fetchFirecrawl } = await import('./providers/firecrawl.js');
+      console.log(`[sensor] Fetching job postings via Firecrawl`);
+      rawData = await fetchFirecrawl(source);
     } else {
       throw new Error(`${source.id}: unknown provider ${source.provider}`);
     }

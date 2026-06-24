@@ -15,7 +15,7 @@ on:
     inputs:
       sources:
         description: Comma-separated source ids to run
-        default: anbi-nl,grantatlas-awardees,grantatlas-grants
+        default: anbi-nl,grantatlas-awardees,hiring-nl,grantatlas-grants
 
 concurrency:
   group: pipeline
@@ -46,7 +46,7 @@ jobs:
           GRANTATLAS_FB_API_KEY: ${{ secrets.GRANTATLAS_FB_API_KEY }}
           GRANTATLAS_PROJECT_ID: ${{ secrets.GRANTATLAS_PROJECT_ID }}
           # workflow_dispatch input is read via env (not interpolated into the shell)
-          SOURCES: ${{ github.event.inputs.sources || 'anbi-nl,grantatlas-awardees,grantatlas-grants' }}
+          SOURCES: ${{ github.event.inputs.sources || 'anbi-nl,grantatlas-awardees,hiring-nl,grantatlas-grants' }}
         run: |
           IFS=',' read -ra SRC <<< "$SOURCES"
           for s in "${SRC[@]}"; do
@@ -54,6 +54,11 @@ jobs:
             npx tsx src/index.ts --source="$s"
             echo "::endgroup::"
           done
+          # Re-score every org against its full signal history (per-run scoring
+          # only sees that run's signals).
+          echo "::group::rescore"
+          npx tsx scripts/rescore.ts
+          echo "::endgroup::"
       - name: Remove key
         if: always()
         run: rm -f "$RUNNER_TEMP/sa.json"

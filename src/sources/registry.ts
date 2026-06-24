@@ -40,7 +40,7 @@ export const SOURCES: Source[] = [
     provider: 'firecrawl',
     signalTypes: ['hiring_grants_role'],
     schedule: '0 5 * * *',
-    enabled: false,                 // enable after ANBI + awardees proven
+    enabled: true,
     fetchConfig: { keywords: ['subsidieadviseur', 'fondsenwerver', 'grants manager'] },
   },
 ];
