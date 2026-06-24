@@ -15,6 +15,19 @@ async function main() {
     process.exit(1);
   }
 
+  // Grants are a separate entity (opportunities catalog), not the org sensor.
+  if (sourceId === 'grantatlas-grants') {
+    const { ingestGrants } = await import('./sources/grantatlas/ingest.js');
+    try {
+      const res = await ingestGrants();
+      console.log(`\n✓ GrantAtlas opportunities ingested: ${res.grants}`);
+      return;
+    } catch (error) {
+      console.error('\n✗ GrantAtlas ingest failed:', error);
+      process.exit(1);
+    }
+  }
+
   const source = SOURCES.find((s) => s.id === sourceId);
   if (!source) {
     console.error(`Unknown source: ${sourceId}. Known: ${SOURCES.map(s => s.id).join(', ')}`);

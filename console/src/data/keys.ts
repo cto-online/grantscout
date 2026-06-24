@@ -14,6 +14,9 @@ export const qk = {
     all: ['organizations'] as const,
     detail: (id: string) => ['organizations', id] as const,
   },
+  opportunities: {
+    all: ['opportunities'] as const,
+  },
   scores: {
     all: ['scores'] as const,
   },

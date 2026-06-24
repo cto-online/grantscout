@@ -15,6 +15,7 @@ const RunDetail = lazy(() => import('@/screens/RunDetail').then((m) => ({ defaul
 const Sources = lazy(() => import('@/screens/Sources').then((m) => ({ default: m.Sources })))
 const Organizations = lazy(() => import('@/screens/Organizations').then((m) => ({ default: m.Organizations })))
 const OrganizationDetail = lazy(() => import('@/screens/OrganizationDetail').then((m) => ({ default: m.OrganizationDetail })))
+const Grants = lazy(() => import('@/screens/Grants').then((m) => ({ default: m.Grants })))
 const ReviewQueue = lazy(() => import('@/screens/ReviewQueue').then((m) => ({ default: m.ReviewQueue })))
 const ScoringResults = lazy(() => import('@/screens/ScoringResults').then((m) => ({ default: m.ScoringResults })))
 const Settings = lazy(() => import('@/screens/Settings').then((m) => ({ default: m.Settings })))
@@ -52,6 +53,7 @@ export function AuthGate() {
           <Route path="sources" element={<Sources />} />
           <Route path="organizations" element={<Organizations />} />
           <Route path="organizations/:id" element={<OrganizationDetail />} />
+          <Route path="grants" element={<Grants />} />
           <Route path="review" element={<ReviewQueue />} />
           <Route path="scoring" element={<ScoringResults />} />
           <Route path="settings" element={<Settings />} />

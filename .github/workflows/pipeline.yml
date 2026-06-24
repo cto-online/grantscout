@@ -1,0 +1,59 @@
+name: pipeline
+
+# Periodic ingestion -> score -> review-queue, writing to production Firestore.
+# Requires repo secrets (Settings -> Secrets and variables -> Actions):
+#   GCP_SA_KEY             full JSON of a service-account key (Firestore + GCS write)
+#   GEMINI_API_KEY         Gemini API key (real Fit embeddings)
+#   GRANTATLAS_FB_API_KEY  GrantAtlas Firebase web API key (for the grants catalog)
+#   GRANTATLAS_PROJECT_ID  GrantAtlas Firebase project id
+# The grantatlas-grants source falls back to a sample until those are set AND the
+# pipeline-bot user is created + allowlisted on the GrantAtlas side.
+on:
+  schedule:
+    - cron: '0 4 * * *' # daily 04:00 UTC
+  workflow_dispatch:
+    inputs:
+      sources:
+        description: Comma-separated source ids to run
+        default: anbi-nl,grantatlas-awardees,grantatlas-grants
+
+concurrency:
+  group: pipeline
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    if: github.repository == 'cto-online/grantscout'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Write service-account key
+        run: printf '%s' "$GCP_SA_KEY" > "$RUNNER_TEMP/sa.json"
+        env:
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+      - name: Run pipeline
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
+          GCP_PROJECT_ID: grantscout-88aa6
+          GCS_RAW_BUCKET: grantscout-88aa6-grantscout-raw
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GRANTATLAS_BASE_URL: https://grantatlas-prod.web.app
+          GRANTATLAS_FB_API_KEY: ${{ secrets.GRANTATLAS_FB_API_KEY }}
+          GRANTATLAS_PROJECT_ID: ${{ secrets.GRANTATLAS_PROJECT_ID }}
+          # workflow_dispatch input is read via env (not interpolated into the shell)
+          SOURCES: ${{ github.event.inputs.sources || 'anbi-nl,grantatlas-awardees,grantatlas-grants' }}
+        run: |
+          IFS=',' read -ra SRC <<< "$SOURCES"
+          for s in "${SRC[@]}"; do
+            echo "::group::source $s"
+            npx tsx src/index.ts --source="$s"
+            echo "::endgroup::"
+          done
+      - name: Remove key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/sa.json"

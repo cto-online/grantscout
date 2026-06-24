@@ -29,6 +29,7 @@ export const collections = {
   accountScores: db?.collection('accountScores'),
   reviewQueue: db?.collection('reviewQueue'),
   syncLogs: db?.collection('syncLogs'),
+  grants: db?.collection('grants'),
 } as any;
 
 export default db;

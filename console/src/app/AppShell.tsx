@@ -11,6 +11,7 @@ import {
   CheckSquare,
   Zap,
   Building2,
+  Banknote,
   Menu,
   X,
 } from 'lucide-react'
@@ -20,6 +21,7 @@ const navItems = [
   { label: 'Pipeline Runs', path: '/runs', icon: Play },
   { label: 'Sources', path: '/sources', icon: Database },
   { label: 'Organizations', path: '/organizations', icon: Building2 },
+  { label: 'Grants', path: '/grants', icon: Banknote },
   { label: 'Review Queue', path: '/review', icon: CheckSquare },
   { label: 'Scoring Results', path: '/scoring', icon: Zap },
   { label: 'Settings', path: '/settings', icon: Settings },

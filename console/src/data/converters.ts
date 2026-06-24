@@ -7,6 +7,7 @@ import type {
   ReviewItem,
   ConsoleSettings,
   SignalSummary,
+  GrantOpportunity,
 } from './types'
 import { DEFAULT_SETTINGS } from './types'
 
@@ -120,6 +121,30 @@ export function toSignalSummary(id: string, d: DocumentData): SignalSummary {
     occurredAt: tsToDate(d.occurredAt),
     strength: d.strength,
     sourceId: d.provenance?.sourceId ?? d.sourceId,
+  }
+}
+
+export function toGrantOpportunity(id: string, d: DocumentData): GrantOpportunity {
+  return {
+    id,
+    title: d.title ?? '(untitled)',
+    description: d.description,
+    funderId: d.funderId ?? '',
+    funderName: d.funderName,
+    fundingMin: d.fundingMin,
+    fundingMax: d.fundingMax,
+    currency: d.currency,
+    dateOpen: tsToDate(d.dateOpen),
+    dateClose: tsToDate(d.dateClose),
+    rolling: d.rolling,
+    geographicScope: d.geographicScope,
+    sectors: d.sectors,
+    organizationTypes: d.organizationTypes,
+    grantType: d.grantType,
+    tags: d.tags,
+    ngoEligible: d.ngoEligible,
+    status: d.status ?? 'active',
+    sourceUrl: d.sourceUrl,
   }
 }
 

@@ -8,6 +8,7 @@ import { normalizeOrg, normalizeSignal } from '../src/pipeline/normalizer.js';
 import { computeAccountScore } from '../src/scoring/accountScore.js';
 import { rankProspects, syncProspectsToHubSpot } from '../src/orchestrator/hubspot.js';
 import { computeICPCentroid, computeFitScore } from '../src/ai/gemini.js';
+import { ICP_SEED_MISSIONS } from '../src/scoring/icp.js';
 
 // Sample ANBI data
 const anbiData = `RSIN_Nummer	Naam	Doelstelling	Status
@@ -75,11 +76,7 @@ async function main() {
   console.log('─'.repeat(60));
 
   // Compute ICP centroid from GrantMaster customer missions (demo seeds)
-  const icpCentroid = await computeICPCentroid([
-    'Education and workforce development',
-    'Healthcare and social services',
-    'Community development and poverty alleviation',
-  ]);
+  const icpCentroid = await computeICPCentroid(ICP_SEED_MISSIONS);
 
   const prospects = await Promise.all(normalizedOrgs.map(async org => {
     const relatedSignals = normalizedSignals.filter(s => s.orgId === org.canonicalId);

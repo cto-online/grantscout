@@ -226,6 +226,23 @@ async function seedReviewQueue() {
   console.log(`[seed] ${N} review queue items`)
 }
 
+async function seedGrants() {
+  const grants = [
+    { id: 'ga-energy-ut', title: 'Subsidie duurzame energie', funderName: 'Provincie Utrecht', grantType: 'subsidy', fundingMin: 5000, fundingMax: 50000, currency: 'EUR', dateClose: Ts.fromDate(daysAgo(-90)), status: 'active', ngoEligible: true, sectors: ['energy', 'environment'], geographicScope: ['NL-UT'], sourceUrl: 'https://zoek.officielebekendmakingen.nl/' },
+    { id: 'ga-youth-oranje', title: 'Jeugd & Ontwikkeling fonds', funderName: 'Oranje Fonds', grantType: 'grant', fundingMin: 10000, fundingMax: 100000, currency: 'EUR', dateClose: Ts.fromDate(daysAgo(-21)), status: 'active', ngoEligible: true, sectors: ['youth', 'education'], geographicScope: ['NL'], sourceUrl: 'https://www.oranjefonds.nl/' },
+    { id: 'ga-culture-pbcf', title: 'Cultuurparticipatie subsidie', funderName: 'Prins Bernhard Cultuurfonds', grantType: 'grant', fundingMin: 2500, fundingMax: 25000, currency: 'EUR', dateClose: Ts.fromDate(daysAgo(-160)), status: 'upcoming', ngoEligible: true, sectors: ['culture'], geographicScope: ['NL'], sourceUrl: 'https://www.cultuurfonds.nl/' },
+    { id: 'ga-climate-postcode', title: 'Klimaat & Natuur programma', funderName: 'Nationale Postcode Loterij', grantType: 'grant', fundingMin: 100000, fundingMax: 1000000, currency: 'EUR', dateClose: Ts.fromDate(daysAgo(116)), status: 'closed', ngoEligible: true, sectors: ['environment', 'nature'], geographicScope: ['NL', 'EU'], sourceUrl: 'https://www.postcodeloterij.nl/' },
+    { id: 'ga-health-zonmw', title: 'Gezondheidsonderzoek subsidie', funderName: 'ZonMw', grantType: 'subsidy', fundingMin: 50000, fundingMax: 500000, currency: 'EUR', rolling: true, status: 'active', ngoEligible: true, sectors: ['health'], geographicScope: ['NL'], sourceUrl: 'https://www.zonmw.nl/' },
+  ]
+  const batch = db.batch()
+  for (const g of grants) {
+    const { id, ...rest } = g
+    batch.set(db.collection('grants').doc(id), { ...rest, ingestedAt: Ts.now() })
+  }
+  await batch.commit()
+  console.log(`[seed] ${grants.length} grant opportunities`)
+}
+
 async function seedSettings() {
   await db.collection('settings').doc('console').set({
     autoRunEnabled: true,
@@ -248,6 +265,7 @@ async function main() {
   await seedSignals()
   await seedScores()
   await seedReviewQueue()
+  await seedGrants()
   await seedSettings()
   console.log('\n[seed] done ✓  Sign in at the console with the "Dev sign-in" button (or')
   console.log(`[seed]   ${DEV_EMAIL} / ${DEV_PASSWORD}).`)
