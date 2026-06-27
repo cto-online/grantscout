@@ -21,6 +21,6 @@ export const usingEmulator =
   import.meta.env.DEV && import.meta.env.VITE_USE_EMULATOR === 'true'
 
 if (usingEmulator) {
-  connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true })
-  connectFirestoreEmulator(db, '127.0.0.1', 8080)
+  connectAuthEmulator(auth, 'http://127.0.0.1:9100', { disableWarnings: true })
+  connectFirestoreEmulator(db, '127.0.0.1', 8180)
 }
